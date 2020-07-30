@@ -83,9 +83,9 @@ public class Consumer {
 		System.out.println("Spinning up kafka account consumer");
 		while (runningFlag) {
 			ConsumerRecords<String, AccountEvent> records = consumer.poll(100);
-			System.out.println("*** records count 2: " + records.count());
+//			System.out.println("*** records count 2: " + records.count());
 			for (ConsumerRecord<String, AccountEvent> consumerRecord : records) {
-				System.out.println("Consuming event from account-event-topic with id/key of: " + consumerRecord.key());
+//				System.out.println("Consuming event from account-event-topic with id/key of: " + consumerRecord.key());
 				AccountEvent accountEvent = (AccountEvent) consumerRecord.value();
 				if (accountEvent.getEventType().toString().contains("AccountCreatedEvent")
 						&& accountEvent.getVersion() == 1)
@@ -106,8 +106,10 @@ public class Consumer {
 						|| accountEvent.getEventType().toString().contains("SnapshotEndEvent"))) {
 				}
 			}
-			if (records.count() == 0)
+			if (records.count() == 0) {
 				runningFlag = false;
+				System.out.println("**** state fully re-constituted ****");
+			}
 		}
 		System.out.println("Shutting down kafka account consumer");
 	}
@@ -174,8 +176,8 @@ public class Consumer {
 			while (runningFlag) {
 				ConsumerRecords<String, AccountEvent> records = consumer.poll(100);
 				for (ConsumerRecord<String, AccountEvent> consumerRecord : records) {
-					System.out.println(
-							"Consuming event from customer-event-topic with id/key of: " + consumerRecord.key());
+//					System.out.println(
+//							"Consuming event from customer-event-topic with id/key of: " + consumerRecord.key());
 					AccountEvent accountEvent = (AccountEvent) consumerRecord.value();
 					if (accountEvent.getEventType().toString().contains("AccountCreatedEvent"))
 						accountRepository.createAccount(accountEvent.getV2());
@@ -220,13 +222,13 @@ public class Consumer {
 
 	private Properties buildConsumerProperties() {
 		Properties properties = new Properties();
-		properties.put("bootstrap.servers", "colossal.canadacentral.cloudapp.azure.com:29092,colossal.canadacentral.cloudapp.azure.com:39092,colossal.canadacentral.cloudapp.azure.com:49092");
+		properties.put("bootstrap.servers", "localhost:29092,localhost:39092,localhost:49092");
 		properties.put("group.id", "account-event-topic-group-v2");
 		properties.put("enable.auto.commit", "false");
 		properties.put("max.poll.records", "200");
 		properties.put("key.deserializer", StringDeserializer.class);
 		properties.put("value.deserializer", KafkaAvroDeserializer.class);
-		properties.put("schema.registry.url", "http://colossal.canadacentral.cloudapp.azure.com:8081");
+		properties.put("schema.registry.url", "http://localhost:8081");
 		properties.put("specific.avro.reader", "true");
 		return properties;
 	}
